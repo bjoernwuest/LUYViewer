@@ -2,11 +2,11 @@
 
 Permits LUY users to download data and view it offline / without LUY.
 
-The motivation of this application is the increasing effort of the LUY company to offer their product LUY as cloud-only SaaS solution. While comfortable and convenient (in my opinion), you are out of control of your data within LUY to some extent. Especially since LUY is often used to document process and IT landscapes, and thus likely used in Business Continuity Management, Emergency Response Teams, etc.. My background as consultant for iteratec GmbH, the initial developer of LUY (formerly iteraplan) from 2011 to 2016/2019, gives me the necessary background in understanding how LUY is used, as well as what is required in an emergency case where LUY is unavailable - for a couple of hours or a few days.  
+The motivation of this application is the increasing effort of the LUY company to offer their product LUY as cloud-only SaaS solution. While comfortable and convenient, you are out of control of your data within LUY to some extent (in my opinion). This is critical especially since LUY is often used to document process and IT landscapes, and thus likely used in Business Continuity Management, Emergency Response Teams, etc.. My background as consultant for iteratec GmbH, the initial developer of LUY (formerly iteraplan) from 2011 to 2016/2019, gives me the necessary background in understanding how LUY is used, as well as what is required in an emergency case where LUY is unavailable - for a couple of hours or a few days.  
 
-This project has been entirely created using Artificial Intelligence (particularly Claude Sonnet 4). So, a big appreciation to Anthropic for their decent AI that made this small, nice application possible. Testing was done manually by me, I am still looking for a good AI doing this...
+This project has been entirely created using Artificial Intelligence (particularly Claude Sonnet 4). So, a big appreciation to Anthropic for their decent AI that made this small, nice application possible. The logo and icon have been created by ChatGPT 4. Testing was done manually by me, I am still looking for a good AI doing this...
 
-The LUYViewer is written in TypeScript, executed in Deno runtime, JavaScript, HTML, and CSS. For convenience, there are release packages for different platforms so the LUYViewer can be run without the Deno runtime - because it is bundled into the executable of the LUYViewer.
+The LUYViewer is written in TypeScript, JavaScript, HTML, and CSS, executed in Deno runtime and the browser. For convenience, there are release packages for different platforms so the LUYViewer can be run without the Deno runtime - because it is bundled into the executable of the LUYViewer.
 
 ## Installation
 
@@ -52,7 +52,6 @@ The LUYViewer is licensed under the [Apache2 license](LICENSE).
 ## ToDo
 
 * Write the "Usage" section
-* Write Github workflows for automatic building and releasing
-* Include SignPath to sign the Windows executable
+* Get registered at SignPath to sign the Windows executable
 * Make LUYViewer multilanguage capable
-* In building block type overview table as well building block detail view, use "name" from metamodel document instead of key-name from data document
+* In building block type overview table as well as building block detail view, use "name" from metamodel document instead of key-name from data document
