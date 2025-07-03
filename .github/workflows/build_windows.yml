@@ -20,12 +20,7 @@ jobs:
 
       - name: Compile LUYViewer for Windows
         run: |
-          # Annahme: Ihre Hauptdatei ist src/main.ts und der Output soll "my-deno-app.exe" heißen
-          # Passen Sie den Pfad zu Ihrer Hauptdatei und den Namen der EXE-Datei an
           deno task compile_windows
-          
-          # Optional: Überprüfen Sie, ob die Datei erstellt wurde
-          ls -la
 
       - name: Upload artifact
         uses: actions/upload-artifact@v4
