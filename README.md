@@ -1,4 +1,4 @@
-!(LUY Viewer logo)[https://github.com/bjoernwuest/LUYViewer/blob/main/LUYViewer_logo.png?raw=true]
+![LUY Viewer logo](https://github.com/bjoernwuest/LUYViewer/blob/main/LUYViewer_logo.png?raw=true)
 
 # LUYViewer
 
