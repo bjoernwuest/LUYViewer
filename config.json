@@ -8,11 +8,7 @@
   },
   // Application settings
   "app": {
-    // Application name
-    "name": "Deno Browser App",
-    // Enable development mode
-    "dev": true,
-    // The URL of the LUY host
-    "luy_host": "https://luy.eam.elli.eco"
+    // The URL of the LUY host. Do not terminate with / and include schema (http, https). Example: https://demo.luy.app
+    "luy_host": "https://demo.luy.app"
   }
 }

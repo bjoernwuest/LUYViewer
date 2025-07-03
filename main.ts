@@ -7,8 +7,6 @@ interface Config {
     hostname: string;
   };
   app: {
-    name: string;
-    dev: boolean;
     luy_host: string;
   };
 }
@@ -26,8 +24,6 @@ async function loadConfig(): Promise<Config> {
         hostname: "localhost"
       },
       app: {
-        name: "LUY offline data browser",
-        dev: true,
         luy_host: "https://luy.eam.elli.eco"
       }
     };
