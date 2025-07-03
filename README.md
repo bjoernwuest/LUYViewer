@@ -1,4 +1,4 @@
-![LUY Viewer logo](https://github.com/bjoernwuest/LUYViewer/blob/main/LUYViewer_logo.png?raw=true)
+![LUY Viewer logo](LUYViewer_logo.png)
 
 Permits LUY users to download data and view it offline / without LUY.
 
