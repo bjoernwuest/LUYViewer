@@ -1,0 +1,31 @@
+# Deno specific
+.deno/
+.vscode/
+.idea/
+*.orig
+*.pyc
+*.swp
+
+# Environment variables
+.env
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
+
+# OS specific
+.DS_Store
+Thumbs.db
+
+# Logs
+logs
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Coverage directory used by tools like istanbul
+coverage/
+
+# Generated files
+dist/

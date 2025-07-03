@@ -1,0 +1,381 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>LUY Offline Daten-Betrachter</title>
+    <link rel="stylesheet" href="main.css">
+</head>
+<body>
+    <div class="container">
+        <div class="sticky-header">
+            <h1>LUY Offline Daten-Betrachter</h1>
+
+            <div class="dropdown-container">
+                <label for="dataFileDropdown">Datensatz wählen:</label>
+                <div class="dropdown-with-button">
+                    <select id="dataFileDropdown">
+                        <option value="">Lädt...</option>
+                    </select>
+                    <button id="downloadButton" class="download-button">Download</button>
+                </div>
+            </div>
+
+            <div class="dropdown-container display-none" id="queryDropdownContainer">
+                <label for="queryDropdown">Wählen Sie ein LUY Element aus:</label>
+                <select id="queryDropdown">
+                    <option value="">LUY Element auswählen...</option>
+                </select>
+            </div>
+
+            <div id="selectedInfo" class="selected-info">
+                <h3>Ausgewählter Datensatz:</h3>
+                <p><strong>Datensatz:</strong> <span id="selectedTimestamp"></span></p>
+                <p><strong>Daten:</strong> <span id="dataFileName"></span></p>
+                <p><strong>Metadaten:</strong> <span id="metadataFileName"></span></p>
+                <div id="selectedQueryInfo" class="query-info display-none">
+                    <p><strong>Ausgewähltes Element:</strong> <span id="selectedQuery"></span></p>
+                </div>
+            </div>
+        </div>
+        
+        <div id="dataDisplay" class="data-display display-none">
+            <h3>Elemente:</h3>
+            <div id="dataContent"></div>
+        </div>
+
+        <div id="detailsView" class="details-view display-none">
+            <h3><span id="detailsTitle"></span></h3>
+            <div id="detailsContent"></div>
+            <button class="back-button" onclick="showResultsTable()">Zurück zur Übersicht</button>
+        </div>
+        
+        <div id="errorMessage" class="error display-none"></div>
+    </div>
+
+    <!-- Download Modal -->
+    <div id="downloadModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>Download Data</h2>
+                <span class="close">&times;</span>
+            </div>
+            <div class="modal-body">
+                <form id="downloadForm">
+                    <div class="form-group">
+                        <label for="username">Benutzername:</label>
+                        <input type="text" id="username" name="username" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="password">Passwort:</label>
+                        <input type="password" id="password" name="password" required>
+                    </div>
+                    <div class="form-buttons">
+                        <button type="submit" id="downloadSubmitButton">Download</button>
+                        <button type="button" id="downloadCancelButton">Abbrechen</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Loading Overlay -->
+    <div id="loadingOverlay" class="loading-overlay">
+        <div class="loading-spinner">
+            <div class="spinner"></div>
+            <p>Download von LUY läuft...</p>
+        </div>
+    </div>
+
+    <!-- Include backend functionality -->
+    <script src="backend.js"></script>
+    <script src="detail.js"></script>
+    <script src="table.js"></script>
+
+    <script>
+        // Global variables
+        let currentTimestamp = null;
+        let currentDataset = null; // Store the loaded dataset
+        let allLoadedData = []; // Store all query results for cross-entity navigation
+
+        // Function to format timestamp from YYYYMMDD_HHmmss to DD.MM.YYYY HH:mm:ss
+        function formatTimestamp(timestamp) {
+            try {
+                // Extract parts: YYYYMMDD_HHmmss
+                const datePart = timestamp.substring(0, 8); // YYYYMMDD
+                const timePart = timestamp.substring(9, 15); // HHmmss
+                
+                const year = datePart.substring(0, 4);
+                const month = datePart.substring(4, 6);
+                const day = datePart.substring(6, 8);
+                
+                const hour = timePart.substring(0, 2);
+                const minute = timePart.substring(2, 4);
+                const second = timePart.substring(4, 6);
+                
+                return day + '.' + month + '.' + year + ' ' + hour + ':' + minute + ':' + second;
+            } catch (error) {
+                console.error('Konnte Datensatz nicht verarbeiten:', error);
+                return timestamp; // Return original if formatting fails
+            }
+        }
+
+        // Function to populate queries dropdown from loaded dataset
+        function populateQueriesDropdown() {
+            if (!currentDataset) {
+                console.error('Kein Datensatz geladen');
+                return;
+            }
+
+            const { data, metamodel } = currentDataset;
+            
+            const dropdown = document.getElementById('queryDropdown');
+            
+            // Clear existing options and reset to default state
+            dropdown.innerHTML = '';
+            
+            // Remove any existing event listeners by cloning the element
+            const newDropdown = dropdown.cloneNode(false);
+            dropdown.parentNode.replaceChild(newDropdown, dropdown);
+            const queryDropdown = document.getElementById('queryDropdown');
+            
+            // Add default option
+            const defaultOption = document.createElement('option');
+            defaultOption.value = '';
+            defaultOption.textContent = 'LUY Element auswählen...';
+            queryDropdown.appendChild(defaultOption);
+            
+            // Process queries synchronously since data is already loaded
+            const validQueries = data
+                .filter(item => {
+                    // Check if query exists in metamodel and has type "SubstantialTypeExpression"
+                    const metamodelEntry = metamodel.find(q => q.persistentName === item.query);
+                    if (!metamodelEntry || metamodelEntry.type !== "SubstantialTypeExpression") {
+                        if (metamodelEntry && metamodelEntry.persistentName == "BusinessMapping") return true;
+                        else return false;
+                    }
+
+                    // Check if query has non-empty results
+                    return item.result && Array.isArray(item.result) && item.result.length > 0;
+                })
+                .map(item => {
+                    const metamodelEntry = metamodel.find(q => q.persistentName === item.query);
+                    return {
+                        query: item.query,
+                        name: metamodelEntry.name || item.query
+                    };
+                });
+            
+            // Add queries to dropdown
+            validQueries.forEach(item => {
+                const option = document.createElement('option');
+                option.value = item.query;
+                option.textContent = item.name;
+                queryDropdown.appendChild(option);
+            });
+            
+            // Show query dropdown
+            document.getElementById('queryDropdownContainer').classList.remove('display-none');
+            document.getElementById('queryDropdownContainer').classList.add('display-block');
+            
+            // Add change event listener
+            queryDropdown.addEventListener('change', function() {
+                if (this.value) {
+                    displayQuery(this.value);
+                } else {
+                    // Hide data views when no query is selected
+                    hideDataViews();
+                }
+            });
+        }
+
+        // Function to hide data views
+        function hideDataViews() {
+            // Hide data display
+            const dataDisplay = document.getElementById('dataDisplay');
+            dataDisplay.classList.remove('display-block');
+            dataDisplay.classList.add('display-none');
+            
+            // Hide details view
+            const detailsView = document.getElementById('detailsView');
+            detailsView.classList.remove('display-block');
+            detailsView.classList.add('display-none');
+            
+            // Hide selected query info
+            const selectedQueryInfo = document.getElementById('selectedQueryInfo');
+            selectedQueryInfo.classList.remove('display-block');
+            selectedQueryInfo.classList.add('display-none');
+            
+            // Clear data content
+            const dataContent = document.getElementById('dataContent');
+            if (dataContent) {
+                dataContent.innerHTML = '';
+            }
+        }
+
+        // Function to display a specific query
+        function displayQuery(queryName) {
+            if (!currentDataset) {
+                console.error('Kein Datensatz geladen');
+                return;
+            }
+
+            const queryData = currentDataset.data.find(item => item.query === queryName);
+            
+            if (!queryData) {
+                console.error(`LUY Element ${queryName} nicht gefunden`);
+                return;
+            }
+
+            // Update selected query info
+            document.getElementById('selectedQuery').textContent = queryName;
+            document.getElementById('selectedQueryInfo').classList.remove('display-none');
+            document.getElementById('selectedQueryInfo').classList.add('display-block');
+
+            // Display the query results
+            displayData(queryData);
+        }
+
+        // Download functionality
+        function initializeDownloadModal() {
+            const modal = document.getElementById('downloadModal');
+            const downloadBtn = document.getElementById('downloadButton');
+            const closeBtn = document.querySelector('.close');
+            const cancelBtn = document.getElementById('downloadCancelButton');
+            const form = document.getElementById('downloadForm');
+            const loadingOverlay = document.getElementById('loadingOverlay');
+
+            // Open modal when download button is clicked
+            downloadBtn.addEventListener('click', function() {
+                modal.style.display = 'block';
+                document.getElementById('username').focus();
+            });
+
+            // Close modal when close button is clicked
+            closeBtn.addEventListener('click', function() {
+                modal.style.display = 'none';
+                clearForm();
+            });
+
+            // Close modal when cancel button is clicked
+            cancelBtn.addEventListener('click', function() {
+                modal.style.display = 'none';
+                clearForm();
+            });
+
+            // Close modal when clicking outside of it
+            window.addEventListener('click', function(event) {
+                if (event.target == modal) {
+                    modal.style.display = 'none';
+                    clearForm();
+                }
+            });
+
+            // Handle form submission
+            form.addEventListener('submit', async function(e) {
+                e.preventDefault();
+                
+                const username = document.getElementById('username').value;
+                const password = document.getElementById('password').value;
+                
+                if (!username || !password) {
+                    alert('Benutzername und Passwort für den Download von LUY eingeben');
+                    return;
+                }
+
+                // Store current selection
+                const currentSelection = document.getElementById('dataFileDropdown').value;
+                
+                // Show loading overlay
+                loadingOverlay.style.display = 'block';
+                modal.style.display = 'none';
+                
+                try {
+                    // Call download API
+                    const response = await fetch('/api/download', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json'
+                        },
+                        body: JSON.stringify({
+                            username: username,
+                            password: password
+                        })
+                    });
+                    
+                    const result = await response.json();
+                    
+                    if (response.ok && result.success) {
+                        // Success - refresh the dropdown
+                        await refreshTimestampDropdown(currentSelection);
+                        alert('Download erfolgreich!');
+                    } else {
+                        // Error
+                        alert('Download fehlgeschlagen: ' + (result.error || 'Unbekannter Fehler'));
+                    }
+                } catch (error) {
+                    console.error('Download fehlgeschlagen:', error);
+                    alert('Download fehlgeschlagen: ' + error.message);
+                } finally {
+                    // Hide loading overlay
+                    loadingOverlay.style.display = 'none';
+                    clearForm();
+                }
+            });
+
+            function clearForm() {
+                document.getElementById('username').value = '';
+                document.getElementById('password').value = '';
+            }
+        }
+
+        // Function to refresh timestamp dropdown while preserving selection
+        async function refreshTimestampDropdown(currentSelection) {
+            try {
+                const response = await fetch('/api/data-files');
+                if (!response.ok) {
+                    throw new Error('Fehler beim Laden der Datensätze');
+                }
+                
+                const timestamps = await response.json();
+                const dropdown = document.getElementById('dataFileDropdown');
+                
+                // Clear existing options
+                dropdown.innerHTML = '';
+                
+                if (timestamps.length === 0) {
+                    dropdown.innerHTML = '<option value="">Keine Datensätze gefunden</option>';
+                    return;
+                }
+                
+                // Add default option
+                const defaultOption = document.createElement('option');
+                defaultOption.value = '';
+                defaultOption.textContent = 'Datensatz wählen...';
+                dropdown.appendChild(defaultOption);
+                
+                // Add timestamp options
+                timestamps.forEach(timestamp => {
+                    const option = document.createElement('option');
+                    option.value = timestamp;
+                    option.textContent = formatTimestamp(timestamp);
+                    dropdown.appendChild(option);
+                });
+                
+                // Restore previous selection if it still exists
+                if (currentSelection && timestamps.includes(currentSelection)) {
+                    dropdown.value = currentSelection;
+                }
+                
+            } catch (error) {
+                console.error('Fehler beim aktualisieren der verfügbaren Datensätze:', error);
+            }
+        }
+
+        // Initialize download modal when page loads
+        document.addEventListener('DOMContentLoaded', function() {
+            initializeDownloadModal();
+        });
+    </script>
+</body>
+</html>

@@ -1,0 +1,862 @@
+body {
+    font-family: Arial, sans-serif;
+    margin: 0;
+    padding: 20px;
+    background-color: #f5f5f5;
+    min-height: 100vh;
+    box-sizing: border-box;
+    overflow: hidden;
+}
+
+/* Make the container use full width */
+.container {
+    background-color: white;
+    padding: 30px;
+    border-radius: 10px;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+    position: relative;
+    width: 100%;
+    box-sizing: border-box;
+}
+
+/* Create a sticky header area */
+.sticky-header {
+    position: sticky;
+    top: 0;
+    background-color: white;
+    z-index: 200;
+    padding-bottom: 20px;
+    margin-bottom: 20px;
+    border-bottom: 2px solid #dee2e6;
+}
+
+h1 {
+    color: #333;
+    text-align: center;
+    margin-bottom: 30px;
+}
+
+.dropdown-container {
+    margin: 20px 0;
+}
+
+label {
+    display: block;
+    margin-bottom: 10px;
+    font-weight: bold;
+    color: #555;
+}
+
+select {
+    width: 100%;
+    padding: 12px;
+    font-size: 16px;
+    border: 2px solid #ddd;
+    border-radius: 5px;
+    background-color: white;
+    box-sizing: border-box;
+}
+
+select:focus {
+    outline: none;
+    border-color: #007bff;
+}
+
+.selected-info {
+    margin-top: 20px;
+    padding: 15px;
+    background-color: #f8f9fa;
+    border-radius: 5px;
+    display: none;
+}
+
+.selected-info.show {
+    display: block;
+}
+
+.query-info {
+    margin-top: 10px;
+    padding-top: 10px;
+    border-top: 1px solid #dee2e6;
+}
+
+.data-display {
+    margin-top: 20px;
+    padding: 15px;
+    background-color: #ffffff;
+    border: 1px solid #dee2e6;
+    border-radius: 5px;
+}
+
+/* Table wrapper with scrolling - this creates the scrolling context */
+.table-wrapper {
+    max-height: calc(100vh - 500px);
+    height: calc(100vh - 500px);
+    overflow: auto;
+    border: 1px solid #dee2e6;
+    border-radius: 5px;
+    position: relative;
+    width: 100%;
+}
+
+/* Base table styles */
+.data-table {
+    width: 100%;
+    border-collapse: collapse;
+    margin: 0;
+}
+
+/* Sticky table headers - stick to the top of the scrolling container */
+.data-table thead {
+    position: sticky;
+    top: 0;
+    z-index: 100;
+}
+
+.data-table thead th {
+    background-color: #f8f9fa;
+    font-weight: bold;
+    color: #495057;
+    padding: 8px 12px;
+    text-align: left;
+    border-bottom: 2px solid #dee2e6;
+    white-space: nowrap;
+    position: relative;
+    /* Ensure the background is solid to cover scrolling content */
+    background-clip: padding-box;
+    min-width: 100px;
+}
+
+.data-table tbody tr:first-child td {
+    border-top: none;
+}
+
+.data-table td {
+    padding: 8px 12px;
+    text-align: left;
+    border-bottom: 1px solid #dee2e6;
+    vertical-align: top;
+    word-wrap: break-word;
+    max-width: 300px;
+}
+
+.data-table tbody tr:hover {
+    background-color: #f8f9fa;
+}
+
+.json-display {
+    background-color: #f8f9fa;
+    padding: 15px;
+    border-radius: 5px;
+    font-family: 'Courier New', monospace;
+    font-size: 14px;
+    overflow-x: auto;
+    white-space: pre-wrap;
+    word-wrap: break-word;
+}
+
+.error {
+    color: #dc3545;
+    padding: 10px;
+    background-color: #f8d7da;
+    border-radius: 5px;
+    margin-top: 10px;
+}
+
+.back-button {
+    background-color: #6c757d;
+    color: white;
+    border: none;
+    padding: 8px 16px;
+    cursor: pointer;
+    border-radius: 4px;
+    margin-bottom: 20px;
+}
+
+.back-button:hover {
+    background-color: #5a6268;
+}
+
+.details-header {
+    margin-bottom: 20px;
+}
+
+.details-table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 10px;
+}
+
+.details-table th,
+.details-table td {
+    border: 1px solid #ddd;
+    padding: 12px;
+    text-align: left;
+    vertical-align: top;
+}
+
+.details-table th {
+    background-color: #f8f9fa;
+    font-weight: bold;
+    width: 200px;
+}
+
+.details-table td {
+    word-break: break-word;
+}
+
+.details-array-item {
+    margin: 5px 0;
+    padding: 5px;
+    background-color: #f8f9fa;
+    border-radius: 3px;
+}
+
+.details-object {
+    background-color: #e9ecef;
+    padding: 10px;
+    border-radius: 4px;
+    margin: 5px 0;
+}
+
+.id-link {
+    color: #007bff;
+    text-decoration: none;
+    cursor: pointer;
+}
+
+.id-link:hover {
+    text-decoration: underline;
+}
+
+/* Utility classes for inline styles */
+.display-none {
+    display: none;
+}
+
+.display-block {
+    display: block;
+}
+
+/* Sortable header styles */
+.sortable-header {
+    cursor: pointer;
+    user-select: none;
+    position: relative;
+    padding-right: 40px !important;
+}
+
+.sortable-header:hover {
+    background-color: #e9ecef !important;
+}
+
+/* Sort indicator styles */
+.sort-indicator {
+    position: absolute;
+    right: 25px;
+    top: 50%;
+    transform: translateY(-50%);
+    font-size: 12px;
+    color: #666;
+}
+
+.sort-indicator.asc::after {
+    content: "▲";
+}
+
+.sort-indicator.desc::after {
+    content: "▼";
+}
+
+.sort-indicator.none::after {
+    content: "↕";
+    opacity: 0.3;
+}
+
+/* Filter button styles */
+.filter-button {
+    position: absolute;
+    right: 5px;
+    top: 50%;
+    transform: translateY(-50%);
+    font-size: 12px;
+    color: #666;
+    cursor: pointer;
+    width: 16px;
+    height: 16px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border: 1px solid #ccc;
+    background: white;
+    border-radius: 2px;
+    z-index: 1;
+}
+
+.filter-button:hover {
+    background-color: #e0e0e0;
+}
+
+.filter-button.active {
+    background-color: #007acc;
+    color: white;
+    border-color: #007acc;
+}
+
+.filter-button::after {
+    content: "⏷";
+}
+
+/* Filter dropdown styles */
+.filter-dropdown {
+    position: absolute;
+    top: 100%;
+    left: 0;
+    right: 0;
+    background: white;
+    border: 1px solid #ccc;
+    border-top: none;
+    max-height: 350px;
+    overflow: hidden;
+    z-index: 250;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+    display: none;
+    min-width: 200px;
+}
+
+.filter-dropdown.show {
+    display: flex;
+    flex-direction: column;
+}
+
+.filter-header {
+    padding: 8px;
+    border-bottom: 1px solid #eee;
+    background-color: #f5f5f5;
+    font-weight: bold;
+    font-size: 12px;
+    flex-shrink: 0;
+}
+
+/* Filter search styles */
+.filter-search {
+    padding: 8px;
+    border-bottom: 1px solid #eee;
+    flex-shrink: 0;
+}
+
+.filter-search-input {
+    width: 100%;
+    padding: 4px 6px;
+    font-size: 11px;
+    border: 1px solid #ccc;
+    border-radius: 2px;
+    box-sizing: border-box;
+}
+
+.filter-search-input:focus {
+    outline: none;
+    border-color: #007acc;
+}
+
+.filter-controls {
+    padding: 8px;
+    border-bottom: 1px solid #eee;
+    flex-shrink: 0;
+}
+
+.filter-controls button {
+    margin-right: 5px;
+    padding: 2px 6px;
+    font-size: 11px;
+    border: 1px solid #ccc;
+    background: white;
+    cursor: pointer;
+}
+
+.filter-controls button:hover {
+    background-color: #e0e0e0;
+}
+
+/* Filter items container with scrolling */
+.filter-items-container {
+    flex: 1;
+    overflow-y: auto;
+    max-height: 200px;
+}
+
+.filter-item {
+    padding: 4px 8px;
+    display: flex;
+    align-items: center;
+    font-size: 12px;
+    border-bottom: 1px solid #f0f0f0;
+}
+
+.filter-item:hover {
+    background-color: #f5f5f5;
+}
+
+.filter-item input[type="checkbox"] {
+    margin-right: 6px;
+}
+
+.filter-item.exclude {
+    background-color: #ffe6e6;
+}
+
+.filter-item.include {
+    background-color: #e6ffe6;
+}
+
+.filter-item.dont-care {
+    background-color: #f0f0f0;
+}
+
+.filter-item-text {
+    flex: 1;
+    cursor: pointer;
+}
+
+.filter-state-indicator {
+    font-size: 10px;
+    margin-left: 5px;
+    color: #666;
+}
+
+.filter-apply {
+    padding: 8px;
+    border-top: 1px solid #eee;
+    background-color: #f5f5f5;
+    text-align: right;
+    flex-shrink: 0;
+}
+
+.filter-apply button {
+    margin-left: 5px;
+    padding: 4px 12px;
+    font-size: 11px;
+    border: 1px solid #ccc;
+    background: white;
+    cursor: pointer;
+}
+
+.filter-apply button.primary {
+    background-color: #007acc;
+    color: white;
+    border-color: #007acc;
+}
+
+.filter-apply button:hover {
+    opacity: 0.8;
+}
+
+/* Responsive adjustments for very wide screens */
+@media (min-width: 1200px) {
+    .data-table td {
+        max-width: 400px;
+    }
+    
+    .table-wrapper {
+        max-height: 80vh;
+    }
+}
+
+@media (min-width: 1600px) {
+    .data-table td {
+        max-width: 500px;
+    }
+}
+
+/* Ensure proper spacing on very small screens */
+@media (max-width: 768px) {
+    body {
+        padding: 10px;
+    }
+    
+    .container {
+        padding: 15px;
+    }
+    
+    .data-table td {
+        max-width: 200px;
+        font-size: 14px;
+    }
+    
+    .data-table th {
+        font-size: 14px;
+        min-width: 80px;
+    }
+}
+/* Existing styles preserved, adding new styles for download functionality */
+
+/* Dropdown with button layout */
+.dropdown-with-button {
+    display: flex;
+    gap: 10px;
+    align-items: center;
+}
+
+.dropdown-with-button select {
+    flex: 1;
+    min-width: 200px;
+}
+
+.download-button {
+    background-color: #007bff;
+    color: white;
+    border: none;
+    padding: 8px 16px;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 14px;
+    white-space: nowrap;
+    transition: background-color 0.3s;
+}
+
+.download-button:hover {
+    background-color: #0056b3;
+}
+
+.download-button:disabled {
+    background-color: #6c757d;
+    cursor: not-allowed;
+}
+
+/* Modal styles */
+.modal {
+    display: none;
+    position: fixed;
+    z-index: 1000;
+    left: 0;
+    top: 0;
+    width: 100%;
+    height: 100%;
+    overflow: auto;
+    background-color: rgba(0, 0, 0, 0.4);
+}
+
+.modal-content {
+    background-color: #fefefe;
+    margin: 15% auto;
+    padding: 0;
+    border: 1px solid #888;
+    border-radius: 8px;
+    width: 400px;
+    max-width: 90%;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+}
+
+.modal-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 20px;
+    border-bottom: 1px solid #eee;
+    background-color: #f8f9fa;
+    border-radius: 8px 8px 0 0;
+}
+
+.modal-header h2 {
+    margin: 0;
+    color: #333;
+}
+
+.close {
+    color: #aaa;
+    font-size: 28px;
+    font-weight: bold;
+    cursor: pointer;
+    line-height: 1;
+}
+
+.close:hover,
+.close:focus {
+    color: #000;
+    text-decoration: none;
+}
+
+.modal-body {
+    padding: 20px;
+}
+
+.form-group {
+    margin-bottom: 20px;
+}
+
+.form-group label {
+    display: block;
+    margin-bottom: 5px;
+    font-weight: bold;
+    color: #333;
+}
+
+.form-group input {
+    width: 100%;
+    padding: 10px;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    font-size: 14px;
+    box-sizing: border-box;
+}
+
+.form-group input:focus {
+    outline: none;
+    border-color: #007bff;
+    box-shadow: 0 0 0 2px rgba(0, 123, 255, 0.25);
+}
+
+.form-buttons {
+    display: flex;
+    gap: 10px;
+    justify-content: flex-end;
+    margin-top: 20px;
+}
+
+.form-buttons button {
+    padding: 10px 20px;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 14px;
+    transition: background-color 0.3s;
+}
+
+.form-buttons button[type="submit"] {
+    background-color: #28a745;
+    color: white;
+}
+
+.form-buttons button[type="submit"]:hover {
+    background-color: #218838;
+}
+
+.form-buttons button[type="button"] {
+    background-color: #6c757d;
+    color: white;
+}
+
+.form-buttons button[type="button"]:hover {
+    background-color: #5a6268;
+}
+
+/* Loading overlay */
+.loading-overlay {
+    display: none;
+    position: fixed;
+    z-index: 2000;
+    left: 0;
+    top: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.7);
+}
+
+.loading-spinner {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    text-align: center;
+    color: white;
+}
+
+.spinner {
+    border: 4px solid #f3f3f3;
+    border-top: 4px solid #007bff;
+    border-radius: 50%;
+    width: 50px;
+    height: 50px;
+    animation: spin 1s linear infinite;
+    margin: 0 auto 20px;
+}
+
+@keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}
+
+.loading-spinner p {
+    font-size: 18px;
+    margin: 0;
+}
+
+/* Responsive design */
+@media (max-width: 768px) {
+    .dropdown-with-button {
+        flex-direction: column;
+        align-items: stretch;
+    }
+    
+    .download-button {
+        width: 100%;
+        margin-top: 10px;
+    }
+    
+    .modal-content {
+        width: 95%;
+        margin: 10% auto;
+    }
+}
+
+/* Sticky column styles */
+.sticky-column {
+    position: sticky !important;
+    background-color: inherit;
+    box-shadow: 2px 0 5px rgba(0,0,0,0.1);
+    border-right: 2px solid #dee2e6 !important;
+}
+
+/* Ensure sticky header cells have proper background */
+.data-table thead th.sticky-column {
+    background-color: #f8f9fa !important;
+    background-clip: padding-box;
+}
+
+/* Ensure sticky body cells have proper background */
+.data-table tbody td.sticky-column {
+    background-color: white !important;
+    background-clip: padding-box;
+}
+
+/* Hover effect for sticky columns */
+.data-table tbody tr:hover td.sticky-column {
+    background-color: #f8f9fa !important;
+}
+
+/* Ensure sticky columns are visible above other content */
+.data-table thead th.sticky-column {
+    z-index: 150;
+}
+
+.data-table tbody td.sticky-column {
+    z-index: 100;
+}
+
+/* Add a subtle shadow to distinguish sticky columns */
+.sticky-column::after {
+    content: '';
+    position: absolute;
+    top: 0;
+    right: 0;
+    bottom: 0;
+    width: 2px;
+    background: linear-gradient(to right, transparent, rgba(0,0,0,0.1));
+    pointer-events: none;
+}
+
+/* Filter dropdown styles for sticky columns */
+.sticky-column-dropdown {
+    position: fixed !important;
+    z-index: 500 !important; /* Even higher z-index */
+    min-width: 280px !important;
+    max-width: 320px !important;
+    background: white !important;
+    border: 3px solid #007acc !important;
+    border-radius: 6px !important;
+    box-shadow: 0 12px 32px rgba(0,0,0,0.4) !important;
+    backdrop-filter: blur(2px) !important;
+}
+
+.sticky-column-dropdown.show {
+    display: flex !important;
+    flex-direction: column !important;
+    animation: fadeInDropdown 0.2s ease-in-out !important;
+}
+
+@keyframes fadeInDropdown {
+    from {
+        opacity: 0;
+        transform: translateY(-10px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+/* Ensure sticky column dropdowns are always visible and properly styled */
+.sticky-column .filter-dropdown.show {
+    position: fixed !important;
+    z-index: 500 !important;
+    min-width: 280px !important;
+    max-width: 320px !important;
+    background: white !important;
+    border: 3px solid #007acc !important;
+    border-radius: 6px !important;
+    box-shadow: 0 12px 32px rgba(0,0,0,0.4) !important;
+}
+
+/* Enhanced styling for the dropdown header */
+.sticky-column-dropdown .filter-header {
+    background: linear-gradient(135deg, #007acc 0%, #0056b3 100%) !important;
+    color: white !important;
+    font-weight: bold !important;
+    font-size: 13px !important;
+    padding: 10px !important;
+    border-radius: 3px 3px 0 0 !important;
+}
+
+/* Enhanced button styling for sticky dropdowns */
+.sticky-column-dropdown .filter-apply {
+    background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%) !important;
+    border-top: 3px solid #007acc !important;
+    padding: 10px !important;
+    border-radius: 0 0 3px 3px !important;
+}
+
+.sticky-column-dropdown .filter-apply button.primary {
+    background: linear-gradient(135deg, #007acc 0%, #0056b3 100%) !important;
+    border: none !important;
+    font-weight: bold !important;
+    padding: 6px 16px !important;
+    border-radius: 4px !important;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.2) !important;
+}
+
+.sticky-column-dropdown .filter-apply button.primary:hover {
+    transform: translateY(-1px) !important;
+    box-shadow: 0 4px 8px rgba(0,0,0,0.3) !important;
+}
+/* Make detailsContent scrollable */
+#detailsContent {
+    max-height: calc(100vh - 500px); /* Adjust height based on available space */
+    overflow-y: auto; /* Enable vertical scrolling */
+    overflow-x: hidden; /* Hide horizontal overflow */
+    padding-right: 10px; /* Add some padding to account for scrollbar */
+    border: 1px solid #dee2e6;
+    border-radius: 5px;
+    background-color: #ffffff;
+}
+
+/* Style the scrollbar for webkit browsers */
+#detailsContent::-webkit-scrollbar {
+    width: 8px;
+}
+
+#detailsContent::-webkit-scrollbar-track {
+    background: #f1f1f1;
+    border-radius: 4px;
+}
+
+#detailsContent::-webkit-scrollbar-thumb {
+    background: #c1c1c1;
+    border-radius: 4px;
+}
+
+#detailsContent::-webkit-scrollbar-thumb:hover {
+    background: #a8a8a8;
+}
+
+/* Ensure the details view doesn't interfere with scrolling */
+.details-view {
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+}
+
+/* Make sure the back button stays at the bottom */
+.details-view .back-button {
+    margin-top: 20px;
+    flex-shrink: 0;
+}

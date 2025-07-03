@@ -1,0 +1,18 @@
+{
+  // HTTP server configuration
+  "server": {
+    // Port number for the HTTP server
+    "port": 8080,
+    // Hostname (localhost only for security)
+    "hostname": "localhost"
+  },
+  // Application settings
+  "app": {
+    // Application name
+    "name": "Deno Browser App",
+    // Enable development mode
+    "dev": true,
+    // The URL of the LUY host
+    "luy_host": "https://luy.eam.elli.eco"
+  }
+}
