@@ -2,12 +2,11 @@ import { parse } from "@std/jsonc";
 import { walk } from "https://deno.land/std@0.203.0/fs/walk.ts";
 
 interface Config {
+  luy_host: string;
+  language: string;
   server: {
     port: number;
     hostname: string;
-  };
-  app: {
-    luy_host: string;
   };
 }
 
@@ -16,17 +15,29 @@ async function loadConfig(): Promise<Config> {
     const configText = await Deno.readTextFile("./config.json");
     return parse(configText) as unknown as Config;
   } catch (error) {
-    console.error("Konnte config.json nicht laden, fahre mit Standardkonfiguration fort:", error);
+    console.error(labels.main_error_config_load || "Could not load config.json, continuing with default configuration:", error);
     // Return default configuration
     return {
+      luy_host: "https://luy.eam.elli.eco",
+      language: "de",
       server: {
         port: 8080,
         hostname: "localhost"
-      },
-      app: {
-        luy_host: "https://luy.eam.elli.eco"
       }
     };
+  }
+}
+
+const config = await loadConfig();
+let labels: Record<string, string> = {};
+
+async function loadLabels(): Promise<void> {
+  try {
+    const labelsContent = await Deno.readTextFile(`./labels_${config.language}.json`);
+    labels = JSON.parse(labelsContent);
+  } catch (error) {
+    console.error("Could not load labels file:", error);
+    labels = {}; // Fallback to empty object
   }
 }
 
@@ -37,8 +48,20 @@ async function serveStaticFile(filePath: string, contentType: string): Promise<R
       headers: { "content-type": contentType },
     });
   } catch (error) {
-    console.error(`Fehler die Datei ${filePath} auszuliefern:`, error);
-    return new Response("Datei nicht gefunden", { status: 404 });
+    console.error(`${labels.main_error_serve_file || "Error serving file"} ${filePath}:`, error);
+    return new Response(labels.main_error_file_not_found || "File not found", { status: 404 });
+  }
+}
+
+async function serveBinaryFile(filePath: string, contentType: string): Promise<Response> {
+  try {
+    const content = await Deno.readFile(filePath);
+    return new Response(content, {
+      headers: { "content-type": contentType },
+    });
+  } catch (error) {
+    console.error(`${labels.main_error_serve_file || "Error serving file"} ${filePath}:`, error);
+    return new Response(labels.main_error_file_not_found || "File not found", { status: 404 });
   }
 }
 
@@ -87,7 +110,7 @@ async function getDataFilePairs(): Promise<string[]> {
 
     return validTimestamps;
   } catch (error) {
-    console.error("Fehler beim lesen der Daten:", error);
+    console.error(labels.main_error_read_data || "Error reading data:", error);
     return [];
   }
 }
@@ -104,14 +127,14 @@ export async function handleDataFilesRequest(request: Request): Promise<Response
         }
       });
     } catch (error) {
-      return new Response(JSON.stringify({ error: 'Konnte Daten nicht laden' }), {
+      return new Response(JSON.stringify({ error: labels.main_error_load_data || "Could not load data" }), {
         status: 500,
         headers: { 'Content-Type': 'application/json' }
       });
     }
   }
 
-  return new Response('Die gewünschte Funktion kann nicht ausgeführt werden', { status: 405 });
+  return new Response(labels.main_error_function_not_available || "The requested function cannot be executed", { status: 405 });
 }
 
 async function handleDatasetRequest(timestamp: string): Promise<Response> {
@@ -140,8 +163,8 @@ async function handleDatasetRequest(timestamp: string): Promise<Response> {
       }
     });
   } catch (error) {
-    console.error(`Error loading dataset for ${timestamp}:`, error);
-    return new Response(JSON.stringify({ error: 'Datensatz konnte nicht geladen werden' }), {
+    console.error(`${labels.main_error_load_dataset || "Error loading dataset for"} ${timestamp}:`, error);
+    return new Response(JSON.stringify({ error: labels.main_error_dataset_not_loaded || "Dataset could not be loaded" }), {
       status: 500,
       headers: { 'Content-Type': 'application/json' }
     });
@@ -155,7 +178,7 @@ async function handleDownloadRequest(request: Request): Promise<Response> {
     const { username, password } = body;
     
     if (!username || !password) {
-      return new Response(JSON.stringify({ error: 'Benutzername und Passwort sind erforderlich' }), {
+      return new Response(JSON.stringify({ error: labels.main_error_username_password_required || "Username and password are required" }), {
         status: 400,
         headers: { 'Content-Type': 'application/json' }
       });
@@ -163,7 +186,7 @@ async function handleDownloadRequest(request: Request): Promise<Response> {
     
     // Load config to get luy_host
     const config = await loadConfig();
-    const luyHost = config.app.luy_host;
+    const luyHost = config.luy_host;
     
     // Create timestamp for file naming
     const now = new Date();
@@ -183,7 +206,7 @@ async function handleDownloadRequest(request: Request): Promise<Response> {
     try {
       // Download metamodel document
       const metamodelUrl = `${luyHost}/api/metamodel`;
-      console.log(`Lade Metamodel von ${metamodelUrl} herunter`);
+      console.log(`${labels.main_info_download_metamodel || "Loading metamodel from"} ${metamodelUrl}`);
       
       const metamodelResponse = await fetch(metamodelUrl, {
         method: 'GET',
@@ -191,17 +214,17 @@ async function handleDownloadRequest(request: Request): Promise<Response> {
       });
       
       if (!metamodelResponse.ok) {
-        throw new Error(`Konnte Metamodel nicht herunterladen: ${metamodelResponse.status} ${metamodelResponse.statusText}`);
+        throw new Error(`${labels.main_error_download_metamodel || "Could not download metamodel"}: ${metamodelResponse.status} ${metamodelResponse.statusText}`);
       }
       
       const metamodelData = await metamodelResponse.text();
       const metamodelFilePath = `./data/${timestamp}_metamodel.json`;
       await Deno.writeTextFile(metamodelFilePath, metamodelData);
-      console.log(`Metamodel gespeichert in: ${metamodelFilePath}`);
+      console.log(`${labels.main_info_metamodel_saved || "Metamodel saved to"}: ${metamodelFilePath}`);
       
       // Download data document
       const dataUrl = `${luyHost}/api/data`;
-      console.log(`Lade Daten von ${dataUrl} herunter`);
+      console.log(`${labels.main_info_download_data || "Loading data from"} ${dataUrl}`);
       
       const dataResponse = await fetch(dataUrl, {
         method: 'GET',
@@ -209,17 +232,17 @@ async function handleDownloadRequest(request: Request): Promise<Response> {
       });
       
       if (!dataResponse.ok) {
-        throw new Error(`Konnte Daten nicht herunterladen: ${dataResponse.status} ${dataResponse.statusText}`);
+        throw new Error(`${labels.main_error_download_data || "Could not download data"}: ${dataResponse.status} ${dataResponse.statusText}`);
       }
       
       const dataText = await dataResponse.text();
       const dataFilePath = `./data/${timestamp}_data.json`;
       await Deno.writeTextFile(dataFilePath, dataText);
-      console.log(`Daten gespeichert in: ${dataFilePath}`);
+      console.log(`${labels.main_info_data_saved || "Data saved to"}: ${dataFilePath}`);
       
       return new Response(JSON.stringify({
         success: true,
-        message: 'Daten erfolgreich heruntergeladen',
+        message: labels.main_success_data_downloaded || "Data downloaded successfully",
         timestamp: timestamp,
         files: {
           metamodel: `${timestamp}_metamodel.json`,
@@ -233,10 +256,10 @@ async function handleDownloadRequest(request: Request): Promise<Response> {
       });
       
     } catch (downloadError) {
-      console.error('Download-Fehler:', downloadError);
+      console.error(labels.main_error_download || "Download error:", downloadError);
       return new Response(JSON.stringify({ 
-        error: 'Konnte die Daten nicht laden.',
-        details: downloadError instanceof Error ? (downloadError.message || 'Unknown error') : String(downloadError)
+        error: labels.main_error_load_data_generic || "Could not load the data.",
+        details: downloadError instanceof Error ? (downloadError.message || labels.main_error_unknown || "Unknown error") : String(downloadError)
       }), {
         status: 500,
         headers: { 'Content-Type': 'application/json' }
@@ -244,9 +267,26 @@ async function handleDownloadRequest(request: Request): Promise<Response> {
     }
     
   } catch (error) {
-    console.error('Fehler beim Download der Daten:', error);
-    return new Response(JSON.stringify({ error: 'Ungültiges Abfrageformat' }), {
+    console.error(labels.main_error_download_data || "Error downloading data:", error);
+    return new Response(JSON.stringify({ error: labels.main_error_invalid_request_format || "Invalid request format" }), {
       status: 400,
+      headers: { 'Content-Type': 'application/json' }
+    });
+  }
+}
+
+async function handleLabelsRequest(): Promise<Response> {
+  try {
+    return new Response(JSON.stringify(labels), {
+      headers: {
+        'Content-Type': 'application/json',
+        'Access-Control-Allow-Origin': '*'
+      }
+    });
+  } catch (error) {
+    console.error(labels.main_error_load_labels || "Error loading labels file:", error);
+    return new Response(JSON.stringify({ error: labels.main_error_load_labels || "Could not load labels" }), {
+      status: 500,
       headers: { 'Content-Type': 'application/json' }
     });
   }
@@ -257,7 +297,7 @@ async function handler(request: Request): Promise<Response> {
   
   // Security: Only allow localhost
   if (url.hostname !== "localhost" && url.hostname !== "127.0.0.1") {
-    return new Response("Verboten: Sie können nur vom lokalen Rechner zugreifen", {
+    return new Response(labels.main_error_forbidden_access || "Forbidden: You can only access from the local machine", {
       status: 403 
     });
   }
@@ -265,6 +305,11 @@ async function handler(request: Request): Promise<Response> {
   // Handle API endpoints
   if (url.pathname === '/api/data-files') {
     return handleDataFilesRequest(request);
+  }
+
+  // Handle labels endpoint
+  if (url.pathname === '/api/labels' && request.method === 'GET') {
+    return handleLabelsRequest();
   }
 
   // Handle download endpoint
@@ -296,34 +341,42 @@ async function handler(request: Request): Promise<Response> {
     return serveStaticFile('./detail.js', 'application/javascript; charset=utf-8');
   }
 
+  if (url.pathname === '/favicon.png') {
+    return serveBinaryFile('./favicon.png', 'image/png;');
+  }
+
+  if (url.pathname === '/LUYViewer_logo.png') {
+    return serveBinaryFile('./LUYViewer_logo.png', 'image/png;');
+  }
+
   // Serve index.html for root path and any other paths
   if (url.pathname === '/' || url.pathname === '/index.html') {
     return serveStaticFile('./index.html', 'text/html; charset=utf-8');
   }
 
   // For any other path, return 404 instead of defaulting to index.html
-  return new Response("Nicht gefunden", { status: 404 });
+  return new Response(labels.main_error_not_found || "Not found", { status: 404 });
 }
 
 async function main() {
-  const config = await loadConfig();
+  await loadLabels();
   
-  console.log(`🦕 Starte die Anwendung...`);
-  console.log(`🌐 Die Anwendung wird über http://${config.server.hostname}:${config.server.port} abrufbar sein.`);
+  console.log(`🦕 ${labels.main_info_starting_application || "Starting the application..."}`);
+  console.log(`🌐 ${labels.main_info_application_available || "The application will be available at"} http://${config.server.hostname}:${config.server.port}`);
   
   const server = Deno.serve({
     hostname: config.server.hostname,
     port: config.server.port,
   }, handler);
   
-  console.log(`🚀 Öffnen Sie http://${config.server.hostname}:${config.server.port} im Browser, um die Anwendung zu nutzen`);
-  console.log(`🔒 Der Zugriff funktioniert nur lokal, nicht von einem anderen Computer.`);
+  console.log(`🚀 ${labels.main_info_open_browser || "Open"} http://${config.server.hostname}:${config.server.port} ${labels.main_info_in_browser || "in your browser to use the application"}`);
+  console.log(`🔒 ${labels.main_info_local_access_only || "Access works only locally, not from another computer."}`);
   
   // Graceful shutdown
   const signals = ["SIGINT", "SIGTERM"] as const;
   for (const signal of signals) {
     Deno.addSignalListener(signal, () => {
-      console.log(`\n📪 Stoppe die Anwendung auf Grund von ${signal}...`);
+      console.log(`\n📪 ${labels.main_info_stopping_application || "Stopping the application due to"} ${signal}...`);
       server.shutdown();
       Deno.exit(0);
     });
@@ -331,5 +384,5 @@ async function main() {
 }
 
 if (import.meta.main) {
-  main().catch(console.error);
+  main();
 }

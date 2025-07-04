@@ -5,49 +5,57 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>LUY Offline Daten-Betrachter</title>
     <link rel="stylesheet" href="main.css">
+    <link rel="icon" type="image/png" sizes="32x32" href="/favicon.png">
 </head>
 <body>
     <div class="container">
         <div class="sticky-header">
-            <h1>LUY Offline Daten-Betrachter</h1>
+            <div style="display: flex; justify-content: space-between; align-items: flex-start;">
+                <img src="/LUYViewer_logo.png" style="max-height: 80px; height: auto;"/>
+                <a href="https://github.com/bjoernwuest/LUYViewer" target="_blank" style="text-decoration: none;">
+                    <svg width="32" height="32" viewBox="0 0 16 16" fill="currentColor" style="color: #333;">
+                        <path d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.013 8.013 0 0016 8c0-4.42-3.58-8-8-8z"/>
+                    </svg>
+                </a>
+            </div>
 
             <div class="dropdown-container">
-                <label for="dataFileDropdown">Datensatz wählen:</label>
+                <label for="dataFileDropdown" id="datasetSelectLabel">Datensatz wählen:</label>
                 <div class="dropdown-with-button">
                     <select id="dataFileDropdown">
-                        <option value="">Lädt...</option>
+                        <option value="" id="loadingOption">Lädt...</option>
                     </select>
                     <button id="downloadButton" class="download-button">Download</button>
                 </div>
             </div>
 
             <div class="dropdown-container display-none" id="queryDropdownContainer">
-                <label for="queryDropdown">Wählen Sie ein LUY Element aus:</label>
+                <label for="queryDropdown" id="querySelectLabel">Wählen Sie ein LUY Element aus:</label>
                 <select id="queryDropdown">
-                    <option value="">LUY Element auswählen...</option>
+                    <option value="" id="querySelectOption">LUY Element auswählen...</option>
                 </select>
             </div>
 
             <div id="selectedInfo" class="selected-info">
-                <h3>Ausgewählter Datensatz:</h3>
-                <p><strong>Datensatz:</strong> <span id="selectedTimestamp"></span></p>
-                <p><strong>Daten:</strong> <span id="dataFileName"></span></p>
-                <p><strong>Metadaten:</strong> <span id="metadataFileName"></span></p>
+                <h3 id="selectedDatasetHeader">Ausgewählter Datensatz:</h3>
+                <p><strong id="datasetLabel">Datensatz:</strong> <span id="selectedTimestamp"></span></p>
+                <p><strong id="dataLabel">Daten:</strong> <span id="dataFileName"></span></p>
+                <p><strong id="metadataLabel">Metadaten:</strong> <span id="metadataFileName"></span></p>
                 <div id="selectedQueryInfo" class="query-info display-none">
-                    <p><strong>Ausgewähltes Element:</strong> <span id="selectedQuery"></span></p>
+                    <p><strong id="selectedElementLabel">Ausgewähltes Element:</strong> <span id="selectedQuery"></span></p>
                 </div>
             </div>
         </div>
         
         <div id="dataDisplay" class="data-display display-none">
-            <h3>Elemente:</h3>
+            <h3 id="elementsHeader">Elemente:</h3>
             <div id="dataContent"></div>
         </div>
 
         <div id="detailsView" class="details-view display-none">
             <h3><span id="detailsTitle"></span></h3>
             <div id="detailsContent"></div>
-            <button class="back-button" onclick="showResultsTable()">Zurück zur Übersicht</button>
+            <button class="back-button" onclick="showResultsTable()" id="backButton">Zurück zur Übersicht</button>
         </div>
         
         <div id="errorMessage" class="error display-none"></div>
@@ -57,17 +65,17 @@
     <div id="downloadModal" class="modal">
         <div class="modal-content">
             <div class="modal-header">
-                <h2>Download Data</h2>
+                <h2 id="downloadModalTitle">Download Data</h2>
                 <span class="close">&times;</span>
             </div>
             <div class="modal-body">
                 <form id="downloadForm">
                     <div class="form-group">
-                        <label for="username">Benutzername:</label>
+                        <label for="username" id="usernameLabel">Benutzername:</label>
                         <input type="text" id="username" name="username" required>
                     </div>
                     <div class="form-group">
-                        <label for="password">Passwort:</label>
+                        <label for="password" id="passwordLabel">Passwort:</label>
                         <input type="password" id="password" name="password" required>
                     </div>
                     <div class="form-buttons">
@@ -83,7 +91,7 @@
     <div id="loadingOverlay" class="loading-overlay">
         <div class="loading-spinner">
             <div class="spinner"></div>
-            <p>Download von LUY läuft...</p>
+            <p id="loadingText">Download von LUY läuft...</p>
         </div>
     </div>
 
@@ -97,6 +105,27 @@
         let currentTimestamp = null;
         let currentDataset = null; // Store the loaded dataset
         let allLoadedData = []; // Store all query results for cross-entity navigation
+
+        // Function to initialize UI labels
+        function initializeUILabels() {
+            document.title = getLabel('ui_page_title', 'LUY Offline Daten-Betrachter');
+            document.getElementById('datasetSelectLabel').textContent = getLabel('ui_dataset_select', 'Datensatz wählen:');
+            document.getElementById('downloadButton').textContent = getLabel('ui_download_button', 'Download');
+            document.getElementById('querySelectLabel').textContent = getLabel('ui_query_select', 'Wählen Sie ein LUY Element aus:');
+            document.getElementById('selectedDatasetHeader').textContent = getLabel('ui_selected_dataset', 'Ausgewählter Datensatz:');
+            document.getElementById('datasetLabel').textContent = getLabel('ui_dataset_label', 'Datensatz:');
+            document.getElementById('dataLabel').textContent = getLabel('ui_data_label', 'Daten:');
+            document.getElementById('metadataLabel').textContent = getLabel('ui_metadata_label', 'Metadaten:');
+            document.getElementById('selectedElementLabel').textContent = getLabel('ui_selected_element', 'Ausgewähltes Element:');
+            document.getElementById('elementsHeader').textContent = getLabel('ui_elements_header', 'Elemente:');
+            document.getElementById('backButton').textContent = getLabel('ui_back_button', 'Zurück zur Übersicht');
+            document.getElementById('downloadModalTitle').textContent = getLabel('ui_download_modal_title', 'Download Data');
+            document.getElementById('usernameLabel').textContent = getLabel('ui_username_label', 'Benutzername:');
+            document.getElementById('passwordLabel').textContent = getLabel('ui_password_label', 'Passwort:');
+            document.getElementById('downloadSubmitButton').textContent = getLabel('ui_download_submit', 'Download');
+            document.getElementById('downloadCancelButton').textContent = getLabel('ui_download_cancel', 'Abbrechen');
+            document.getElementById('loadingText').textContent = getLabel('ui_loading_text', 'Download von LUY läuft...');
+        }
 
         // Function to format timestamp from YYYYMMDD_HHmmss to DD.MM.YYYY HH:mm:ss
         function formatTimestamp(timestamp) {
@@ -115,7 +144,7 @@
                 
                 return day + '.' + month + '.' + year + ' ' + hour + ':' + minute + ':' + second;
             } catch (error) {
-                console.error('Konnte Datensatz nicht verarbeiten:', error);
+                console.error(getLabel('ui_error_format_timestamp', 'Konnte Datensatz nicht verarbeiten:'), error);
                 return timestamp; // Return original if formatting fails
             }
         }
@@ -123,7 +152,7 @@
         // Function to populate queries dropdown from loaded dataset
         function populateQueriesDropdown() {
             if (!currentDataset) {
-                console.error('Kein Datensatz geladen');
+                console.error(getLabel('ui_error_no_dataset', 'Kein Datensatz geladen'));
                 return;
             }
 
@@ -142,7 +171,7 @@
             // Add default option
             const defaultOption = document.createElement('option');
             defaultOption.value = '';
-            defaultOption.textContent = 'LUY Element auswählen...';
+            defaultOption.textContent = getLabel('ui_query_select_option', 'LUY Element auswählen...');
             queryDropdown.appendChild(defaultOption);
             
             // Process queries synchronously since data is already loaded
@@ -216,14 +245,14 @@
         // Function to display a specific query
         function displayQuery(queryName) {
             if (!currentDataset) {
-                console.error('Kein Datensatz geladen');
+                console.error(getLabel('ui_error_no_dataset', 'Kein Datensatz geladen'));
                 return;
             }
 
             const queryData = currentDataset.data.find(item => item.query === queryName);
             
             if (!queryData) {
-                console.error(`LUY Element ${queryName} nicht gefunden`);
+                console.error(`${getLabel('ui_error_element_not_found', 'LUY Element')} ${queryName} ${getLabel('ui_error_not_found', 'nicht gefunden')}`);
                 return;
             }
 
@@ -279,7 +308,7 @@
                 const password = document.getElementById('password').value;
                 
                 if (!username || !password) {
-                    alert('Benutzername und Passwort für den Download von LUY eingeben');
+                    alert(getLabel('ui_alert_credentials_required', 'Benutzername und Passwort für den Download von LUY eingeben'));
                     return;
                 }
 
@@ -308,14 +337,14 @@
                     if (response.ok && result.success) {
                         // Success - refresh the dropdown
                         await refreshTimestampDropdown(currentSelection);
-                        alert('Download erfolgreich!');
+                        alert(getLabel('ui_alert_download_success', 'Download erfolgreich!'));
                     } else {
                         // Error
-                        alert('Download fehlgeschlagen: ' + (result.error || 'Unbekannter Fehler'));
+                        alert(`${getLabel('ui_alert_download_failed', 'Download fehlgeschlagen:')} ${result.error || getLabel('ui_error_unknown', 'Unbekannter Fehler')}`);
                     }
                 } catch (error) {
-                    console.error('Download fehlgeschlagen:', error);
-                    alert('Download fehlgeschlagen: ' + error.message);
+                    console.error(getLabel('ui_error_download_failed', 'Download fehlgeschlagen:'), error);
+                    alert(`${getLabel('ui_alert_download_failed', 'Download fehlgeschlagen:')} ${error.message}`);
                 } finally {
                     // Hide loading overlay
                     loadingOverlay.style.display = 'none';
@@ -334,7 +363,7 @@
             try {
                 const response = await fetch('/api/data-files');
                 if (!response.ok) {
-                    throw new Error('Fehler beim Laden der Datensätze');
+                    throw new Error(getLabel('ui_error_load_datasets', 'Fehler beim Laden der Datensätze'));
                 }
                 
                 const timestamps = await response.json();
@@ -344,14 +373,17 @@
                 dropdown.innerHTML = '';
                 
                 if (timestamps.length === 0) {
-                    dropdown.innerHTML = '<option value="">Keine Datensätze gefunden</option>';
+                    const noDataOption = document.createElement('option');
+                    noDataOption.value = '';
+                    noDataOption.textContent = getLabel('ui_no_datasets_found', 'Keine Datensätze gefunden');
+                    dropdown.appendChild(noDataOption);
                     return;
                 }
                 
                 // Add default option
                 const defaultOption = document.createElement('option');
                 defaultOption.value = '';
-                defaultOption.textContent = 'Datensatz wählen...';
+                defaultOption.textContent = getLabel('ui_dataset_select_option', 'Datensatz wählen...');
                 dropdown.appendChild(defaultOption);
                 
                 // Add timestamp options
@@ -368,13 +400,56 @@
                 }
                 
             } catch (error) {
-                console.error('Fehler beim aktualisieren der verfügbaren Datensätze:', error);
+                console.error(getLabel('ui_error_refresh_datasets', 'Fehler beim aktualisieren der verfügbaren Datensätze:'), error);
             }
         }
 
-        // Initialize download modal when page loads
+        function getBBTTypeByID(id) {
+            let q = allLoadedData.find(entry => {
+                if (entry.result.find(item => item.id[0] === id)) return true;
+            });
+            return q && q.query ? q.query : "<none>";
+        }
+
+        // Function to get display name from metamodel
+        function getDisplayName(key, currentQuery) {
+            if (!currentDataset || !currentDataset.metamodel) {
+                return key; // Fallback to key if no metamodel
+            }
+
+            // Find the metamodel entry for the current query
+            const metamodelEntry = currentDataset.metamodel.find(entry => entry.persistentName === currentQuery);
+
+            if (!metamodelEntry) {
+                return key; // Fallback if query not found in metamodel
+            }
+
+            const feature = metamodelEntry.features.find(f => f.persistentName === key);
+            return feature && feature.name ? feature.name : key;
+/*
+            // Look for the attribute in SubstantialTypeExpression or RelationshipTypeExpression
+            let attribute = null;
+
+            if (metamodelEntry.type === "SubstantialTypeExpression" && metamodelEntry.attributes) {
+                attribute = metamodelEntry.attributes.find(attr => attr.persistentName === key);
+            } else if (metamodelEntry.type === "RelationshipTypeExpression" && metamodelEntry.attributes) {
+                attribute = metamodelEntry.attributes.find(attr => attr.persistentName === key);
+            }
+
+            // Return the display name if found, otherwise fallback to key
+            return attribute && attribute.name ? attribute.name : key;*/
+        }
+
+        // Initialize the application
         document.addEventListener('DOMContentLoaded', function() {
-            initializeDownloadModal();
+            document.getElementById('backButton').classList.add('display-none');
+            document.getElementById('backButton').classList.remove('display-block');
+
+            // Initialize UI labels after backend is loaded
+            setTimeout(() => {
+                initializeUILabels();
+                initializeDownloadModal();
+            }, 100);
         });
     </script>
 </body>

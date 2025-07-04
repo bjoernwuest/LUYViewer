@@ -5,6 +5,7 @@
 *.orig
 *.pyc
 *.swp
+*.exe
 
 # Environment variables
 .env
@@ -29,4 +30,4 @@ coverage/
 
 # Generated files
 dist/
-/data/
+data/

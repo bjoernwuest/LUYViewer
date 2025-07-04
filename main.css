@@ -231,7 +231,7 @@ select:focus {
 
 /* Utility classes for inline styles */
 .display-none {
-    display: none;
+    display: none !important;
 }
 
 .display-block {

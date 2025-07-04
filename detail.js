@@ -24,11 +24,13 @@ function showDetails(item, index) {
                 itemId = item.id;
             }
         }
-        itemName = itemId ? `id ${itemId}` : 'Unknown Item';
+        itemName = itemId ? `${getLabel('detail_id', 'id')} ${itemId}` : getLabel('detail_unknown_item', 'Unknown Item');
     }
 
     // Set title using the item's name or ID
-    detailsTitle.textContent = `Details for ${itemName}`;
+    detailsTitle.textContent = `${getLabel('detail_details_for', 'Details for')} ${itemName}`;
+
+    const buildingBlockType = getBBTTypeByID(item.id[0]);
 
     // Create details table
     const table = document.createElement('table');
@@ -62,7 +64,7 @@ function showDetails(item, index) {
         const row = document.createElement('tr');
 
         const keyCell = document.createElement('th');
-        keyCell.textContent = key;
+        keyCell.textContent = getDisplayName(key, buildingBlockType);
 
         const valueCell = document.createElement('td');
 
@@ -74,16 +76,16 @@ function showDetails(item, index) {
             link.className = 'id-link';
 
             if (Array.isArray(value)) {
-                link.textContent = value.length > 0 ? value.join(', ') : 'No value';
+                link.textContent = value.length > 0 ? value.join(', ') : getLabel('detail_no_value', 'No value');
             } else {
-                link.textContent = value || 'No value';
+                link.textContent = value || getLabel('detail_no_value', 'No value');
             }
 
             valueCell.appendChild(link);
         }
         else if (Array.isArray(value)) {
             if (value.length === 0) {
-                valueCell.textContent = 'No entries';
+                valueCell.textContent = getLabel('detail_no_entries', 'No entries');
             } else {
                 value.forEach(arrayItem => {
                     const div = document.createElement('div');
@@ -96,7 +98,7 @@ function showDetails(item, index) {
                             const link = document.createElement('a');
                             link.href = '#';
                             link.className = 'id-link';
-                            link.textContent = `${arrayItem.name || arrayItem.id} (ID: ${arrayItem.id})`;
+                            link.textContent = `${arrayItem.name || arrayItem.id} (${getLabel('detail_id_label', 'ID')}: ${arrayItem.id})`;
                             link.onclick = (e) => {
                                 e.preventDefault();
                                 navigateToEntity(arrayItem.id, arrayItem.elementURI);
@@ -118,7 +120,7 @@ function showDetails(item, index) {
             objDiv.textContent = JSON.stringify(value, null, 2);
             valueCell.appendChild(objDiv);
         } else {
-            valueCell.textContent = value || 'No value';
+            valueCell.textContent = value || getLabel('detail_no_value', 'No value');
         }
 
         row.appendChild(keyCell);
@@ -178,7 +180,7 @@ function navigateToEntity(entityId, elementURI) {
         }
     }
 
-    alert(`Entity with ID ${entityId} not found in loaded data.`);
+    alert(`${getLabel('detail_entity_not_found', 'Entity with ID')} ${entityId} ${getLabel('detail_not_found_in_data', 'not found in loaded data.')}`);
 }
 
 
@@ -188,4 +190,8 @@ function showResultsTable() {
     document.getElementById('detailsView').classList.remove('display-block');
     document.getElementById('dataDisplay').classList.remove('display-none');
     document.getElementById('dataDisplay').classList.add('display-block');
+
+    // Hide the back button when returning to table view
+    document.getElementById('backButton').classList.add('display-none');
+    document.getElementById('backButton').classList.remove('display-block');
 }

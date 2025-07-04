@@ -1,3 +1,4 @@
+let currentQuery; // The current query displayed
 let currentTableData = []; // Store current table data for sorting
 let currentColumns = []; // Store current column order
 let sortState = {}; // Store sorting state for each column
@@ -153,7 +154,7 @@ function createFilterDropdown(column, headerElement) {
     
     const searchInput = document.createElement('input');
     searchInput.type = 'text';
-    searchInput.placeholder = 'Search... (* = any chars, ? = single char)';
+    searchInput.placeholder = getLabel('table_search_placeholder', 'Search... (* = any chars, ? = single char)');
     searchInput.className = 'filter-search-input';
     
     // Add search functionality
@@ -177,7 +178,7 @@ function createFilterDropdown(column, headerElement) {
     controls.className = 'filter-controls';
 
     const selectAllBtn = document.createElement('button');
-    selectAllBtn.textContent = 'All';
+    selectAllBtn.textContent = getLabel('table_all', 'All');
     selectAllBtn.addEventListener('click', (e) => {
         e.stopPropagation();
         const valuesToProcess = filteredValues[column] || uniqueValues[column];
@@ -189,7 +190,7 @@ function createFilterDropdown(column, headerElement) {
     });
 
     const selectNoneBtn = document.createElement('button');
-    selectNoneBtn.textContent = 'None';
+    selectNoneBtn.textContent = getLabel('table_none', 'None');
     selectNoneBtn.addEventListener('click', (e) => {
         e.stopPropagation();
         const valuesToProcess = filteredValues[column] || uniqueValues[column];
@@ -201,7 +202,7 @@ function createFilterDropdown(column, headerElement) {
     });
 
     const clearBtn = document.createElement('button');
-    clearBtn.textContent = 'Clear';
+    clearBtn.textContent = getLabel('table_clear', 'Clear');
     clearBtn.addEventListener('click', (e) => {
         e.stopPropagation();
         tempFilterState[column] = {};
@@ -209,7 +210,7 @@ function createFilterDropdown(column, headerElement) {
     });
 
     const dontCareBtn = document.createElement('button');
-    dontCareBtn.textContent = "Don't Care";
+    dontCareBtn.textContent = getLabel('table_dont_care', "Don't Care");
     dontCareBtn.addEventListener('click', (e) => {
         e.stopPropagation();
         const valuesToProcess = filteredValues[column] || uniqueValues[column];
@@ -236,7 +237,7 @@ function createFilterDropdown(column, headerElement) {
     applySection.className = 'filter-apply';
 
     const cancelBtn = document.createElement('button');
-    cancelBtn.textContent = 'Cancel';
+    cancelBtn.textContent = getLabel('table_cancel', 'Cancel');
     cancelBtn.addEventListener('click', (e) => {
         e.stopPropagation();
         // Reset temp state to current filter state
@@ -246,7 +247,7 @@ function createFilterDropdown(column, headerElement) {
 
     const applyBtn = document.createElement('button');
     applyBtn.className = 'primary';
-    applyBtn.textContent = 'Apply';
+    applyBtn.textContent = getLabel('table_apply', 'Apply');
     applyBtn.addEventListener('click', (e) => {
         e.stopPropagation();
         applyFiltersFromTempState(column);
@@ -515,7 +516,7 @@ function renderTable(data, columns) {
         const th = document.createElement('th');
         th.className = 'sortable-header';
         th.style.position = 'relative';
-        th.textContent = key;
+        th.textContent = getDisplayName(key, currentQuery); // FIXME: use getDisplayName here
         th.setAttribute('data-column', key); // Add data attribute for easier identification
 
         // Check if this column should be sticky
@@ -562,7 +563,7 @@ function renderTable(data, columns) {
             e.stopPropagation();
             e.preventDefault();
 
-            console.log(`Filter button clicked for column: ${key}`); // Debug log
+            console.log(`${getLabel('table_filter_button_clicked_for', 'Filter button clicked for column')}: ${key}`); // Debug log
 
             // Initialize temp state from current filter state
             tempFilterState[key] = { ...filterState[key] };
@@ -656,6 +657,8 @@ function renderTable(data, columns) {
                 link.addEventListener('click', (e) => {
                     e.preventDefault();
                     e.stopPropagation();
+                    document.getElementById('backButton').classList.remove('display-none');
+                    document.getElementById('backButton').classList.add('display-block');
                     showDetails(item, index);
                 });
 
@@ -767,6 +770,8 @@ function displayData(queryData) {
         dataDisplay.classList.add('display-block');
         return;
     }
+
+    currentQuery = queryData.query;
 
     // Reset sorting and filtering state for new data
     sortState = {};
