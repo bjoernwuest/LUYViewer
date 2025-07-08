@@ -1,0 +1,200 @@
+name: Build All Platforms and Create Release
+
+on:
+  push:
+    branches:
+      - master
+
+jobs:
+  build-windows:
+    runs-on: windows-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Deno
+        uses: denoland/setup-deno@v2
+        with:
+          deno-version: v2.3.x
+
+      - name: Compile LUYViewer for Windows
+        run: deno task compile_windows
+
+      - name: Create package directory
+        run: mkdir package
+
+      - name: Create data directory
+        run: mkdir package/data
+
+      - name: Move app and other files into package directory
+        run: |
+          move LUYViewer.exe package/
+          copy LUYViewer_logo.png package/
+          copy backend.js package/
+          copy config.json package/
+          copy detail.js package/
+          copy favicon.ico package/
+          copy index.html package/
+          copy main.css package/
+          copy table.js package/
+
+      - name: Create ZIP archive
+        run: Compress-Archive -Path package/* -DestinationPath LUYViewer-Windows.zip
+
+      - name: Upload Windows artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: windows-build
+          path: LUYViewer-Windows.zip
+
+  build-macos:
+    runs-on: macos-latest
+    strategy:
+      matrix:
+        include:
+          - target: intel
+            task: compile_macos_intel
+            arch: x86_64
+          - target: apple
+            task: compile_macos_apple
+            arch: aarch64
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Deno
+        uses: denoland/setup-deno@v2
+        with:
+          deno-version: v2.3.x
+
+      - name: Compile LUYViewer for macOS (${{ matrix.target }})
+        run: deno task ${{ matrix.task }}
+
+      - name: Create package directory
+        run: mkdir package
+
+      - name: Create data directory
+        run: mkdir package/data
+
+      - name: Move app and other files into package directory
+        run: |
+          mv LUYViewer package/
+          cp LUYViewer_logo.png package/
+          cp backend.js package/
+          cp config.json package/
+          cp detail.js package/
+          cp favicon.ico package/
+          cp index.html package/
+          cp main.css package/
+          cp table.js package/
+
+      - name: Create ZIP archive
+        run: |
+          cd package
+          zip -r ../LUYViewer-macOS-${{ matrix.arch }}.zip .
+
+      - name: Upload macOS artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: macos-build-${{ matrix.arch }}
+          path: LUYViewer-macOS-${{ matrix.arch }}.zip
+
+  build-linux:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Deno
+        uses: denoland/setup-deno@v2
+        with:
+          deno-version: v2.3.x
+
+      - name: Compile LUYViewer for Linux
+        run: deno task compile_linux
+
+      - name: Create package directory
+        run: mkdir package
+
+      - name: Create data directory
+        run: mkdir package/data
+
+      - name: Move app and other files into package directory
+        run: |
+          mv LUYViewer package/
+          cp LUYViewer_logo.png package/
+          cp backend.js package/
+          cp config.json package/
+          cp detail.js package/
+          cp favicon.ico package/
+          cp index.html package/
+          cp main.css package/
+          cp table.js package/
+
+      - name: Create TAR.GZ archive
+        run: tar -czf LUYViewer-Linux-x86_64.tar.gz -C package .
+
+      - name: Upload Linux artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: linux-build
+          path: LUYViewer-Linux-x86_64.tar.gz
+
+  create-release:
+    needs: [build-windows, build-macos, build-linux]
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Generate release tag
+        id: tag
+        run: |
+          TAG="v$(date +'%Y.%m.%d')-$(git rev-parse --short HEAD)"
+          echo "tag=$TAG" >> $GITHUB_OUTPUT
+
+      - name: Download all artifacts
+        uses: actions/download-artifact@v4
+        with:
+          path: ./artifacts
+
+      - name: List artifacts
+        run: find ./artifacts -type f -name "*.zip" -o -name "*.tar.gz" | head -20
+
+      - name: Create Release
+        uses: actions/create-release@v1
+        id: create_release
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          tag_name: ${{ steps.tag.outputs.tag }}
+          release_name: LUYViewer ${{ steps.tag.outputs.tag }}
+          body: |
+            ## LUYViewer Release ${{ steps.tag.outputs.tag }}
+            
+            Automated release created from commit ${{ github.sha }}
+            
+            ### Downloads:
+            - **Windows**: LUYViewer-Windows.zip
+            - **macOS Intel**: LUYViewer-macOS-x86_64.zip
+            - **macOS Apple Silicon**: LUYViewer-macOS-aarch64.zip
+            - **Linux**: LUYViewer-Linux-x86_64.tar.gz
+          draft: false
+          prerelease: false
+
+      - name: Upload Release Assets
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          # Upload Windows
+          gh release upload ${{ steps.tag.outputs.tag }} ./artifacts/windows-build/LUYViewer-Windows.zip
+          
+          # Upload macOS Intel
+          gh release upload ${{ steps.tag.outputs.tag }} ./artifacts/macos-build-x86_64/LUYViewer-macOS-x86_64.zip
+          
+          # Upload macOS Apple Silicon
+          gh release upload ${{ steps.tag.outputs.tag }} ./artifacts/macos-build-aarch64/LUYViewer-macOS-aarch64.zip
+          
+          # Upload Linux
+          gh release upload ${{ steps.tag.outputs.tag }} ./artifacts/linux-build/LUYViewer-Linux-x86_64.tar.gz
