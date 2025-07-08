@@ -5,7 +5,10 @@
   "tasks": {
     "start": "deno run --allow-net --allow-read --allow-write=./data main.ts",
     "dev": "deno run --allow-net --allow-read --allow-write=./data --watch main.ts",
-    "compile_windows": "deno compile --allow-net --allow-read --allow-write=./data --target x86_64-pc-windows-msvc --output LUYViewer.exe main.ts"
+    "compile_windows": "deno compile --allow-net --allow-read --allow-write=./data --target x86_64-pc-windows-msvc --output LUYViewer.exe main.ts",
+    "compile_macos_intel": "deno compile --allow-net --allow-read --allow-write=./data --target x86_64-apple-darwin --output LUYViewer main.ts",
+    "compile_macos_apple": "deno compile --allow-net --allow-read --allow-write=./data --target aarch64-apple-darwin --output LUYViewer main.ts",
+    "compile_linux": "deno compile --allow-net --allow-read --allow-write=./data --target x86_64-unknown-linux-gnu --output LUYViewer main.ts"
   },
   "imports": {
     "@std/path": "jsr:@std/path@^1.0.0",

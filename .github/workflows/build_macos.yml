@@ -1,0 +1,62 @@
+name: Build and Package LUYViewer for macOS
+
+on:
+  push:
+    branches:
+      - master
+
+jobs:
+  build:
+    runs-on: macos-latest
+
+    strategy:
+      matrix:
+        include:
+          - target: intel
+            task: compile_macos_intel
+            arch: x86_64
+          - target: apple
+            task: compile_macos_apple
+            arch: aarch64
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Deno
+        uses: denoland/setup-deno@v2
+        with:
+          deno-version: v2.3.x
+
+      - name: Compile LUYViewer for macOS (${{ matrix.target }})
+        run: |
+          deno task ${{ matrix.task }}
+
+      - name: Create package directory
+        run: mkdir package
+
+      - name: Create data directory
+        run: mkdir package/data
+
+      - name: Move app and other files into package directory
+        run: |
+          mv LUYViewer package/
+          cp LUYViewer_logo.png package/
+          cp backend.js package/
+          cp config.json package/
+          cp detail.js package/
+          cp favicon.ico package/
+          cp index.html package/
+          cp main.css package/
+          cp table.js package/
+
+      - name: Create ZIP archive
+        run: |
+          cd package
+          zip -r ../LUYViewer-macOS-${{ matrix.arch }}.zip .
+
+      - name: Upload deployment package
+        uses: actions/upload-artifact@v4
+        with:
+          name: macos-deployment-package-${{ matrix.arch }}
+          path: LUYViewer-macOS-${{ matrix.arch }}.zip

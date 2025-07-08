@@ -1,13 +1,13 @@
-name: Build, Sign and Package LUYViewer for Windows
+name: Build and Package LUYViewer for Windows
 
 on:
   push:
     branches:
-      - master # Oder Ihr Hauptentwicklungszweig
+      - master
 
 jobs:
   build:
-    runs-on: windows-latest # Wichtig: Für Windows-Binärdateien auf einem Windows-Runner bauen
+    runs-on: windows-latest
 
     steps:
       - name: Checkout repository
@@ -16,61 +16,37 @@ jobs:
       - name: Setup Deno
         uses: denoland/setup-deno@v2
         with:
-          deno-version: v2.3.x # Ersetzen Sie dies durch die gewünschte Deno-Version, z.B. v1.44.2
+          deno-version: v2.3.x
 
       - name: Compile LUYViewer for Windows
         run: |
           deno task compile_windows
 
-      - name: Upload artifact
-        uses: actions/upload-artifact@v4
-        with:
-          name: windows-binary # Dieser Name wird später in SignPath.io verwendet
-          path: LUYViewer.exe # Der Pfad zur erstellten EXE-Datei
-          retention-days: 1 # Wie lange das Artefakt auf GitHub Actions gespeichert werden soll (SignPath lädt es herunter)
-
-  # Job 2: Warten auf die Signierung durch SignPath und dann Paket erstellen
-  package:
-    # Dieser Job hängt vom 'build'-Job ab und wird erst gestartet, wenn 'build' erfolgreich ist.
-    # WICHTIG: SignPath.io wird auch durch den 'build'-Job getriggert und lädt die signierte Datei
-    # in denselben Workflow-Run hoch. Daher kann dieser Job das Artefakt direkt herunterladen.
-    needs: build
-    runs-on: ubuntu-latest # Wir können hier Ubuntu verwenden, da wir nur packen
-
-    steps:
-      - name: Checkout repository
-        uses: actions/checkout@v4
-
-      - name: Wait for signed artifact from SignPath
-        uses: actions/download-artifact@v4
-        with:
-          name: windows-binary-signed # Dies MUSS dem Namen entsprechen, den Sie in SignPath.io konfiguriert haben!
-          path: . # Lädt die signierte EXE ins aktuelle Verzeichnis herunter
-
-      - name: Install zip
-        run: sudo apt-get update && sudo apt-get install -y zip
-
+      - name: Install zip (Windows)
+        run: |
+          # Use PowerShell to create zip (built-in on Windows)
+          
       - name: Create package directory
         run: mkdir package
 
       - name: Create data directory
         run: mkdir package/data
 
-      - name: Move signed app and other files into package directory
+      - name: Move app and other files into package directory
         run: |
-          # Annahme: Die Excel-Datei liegt im Stammverzeichnis Ihres Repos
-          mv LUYViewer.exe package/
-          cp LUYViewer_logo.png package/
-          cp backend.js package/
-          cp config.json package/
-          cp detail.js package/
-          cp favicon.ico package/
-          cp index.html package/
-          cp main.css package/
-          cp table.js package/
+          move LUYViewer.exe package/
+          copy LUYViewer_logo.png package/
+          copy backend.js package/
+          copy config.json package/
+          copy detail.js package/
+          copy favicon.ico package/
+          copy index.html package/
+          copy main.css package/
+          copy table.js package/
 
       - name: Create ZIP archive
-        run: zip -r LUYViewer-Windows.zip package/
+        run: |
+          Compress-Archive -Path package/* -DestinationPath LUYViewer-Windows.zip
 
       - name: Upload final deployment package
         uses: actions/upload-artifact@v4

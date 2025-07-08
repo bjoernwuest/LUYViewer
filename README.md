@@ -43,7 +43,42 @@ Finally, check if the *data* folder exists, and if not, create it.
 
 ### Daily use
 
-...To be written
+To use the application, simply start it. If started, it shows something like this (Windows, the error message is Windows specific and can be ignored):
+![Windows startup screen](./doc/windows_commandline.png)
+
+Open the URL displayed (in above example: http://localhost:28123) in the browser. The following screen shall show:
+
+![Start screen of application](./doc/Start_Screen.png)
+
+If this is the first time you use the application, most likely you want to press the "Download" button and download a data set from LUY. Enter the user name and password of the (iTurm!) user that has permission to read the LUY data.
+
+![Download dialog](./doc/Download_Dialog.png)
+
+After download is finished, you are returned to the start screen and can select the data set:
+
+![Select data set](./doc/Select_dataset.png)
+
+The available data sets are shown by their timestamp they were downloaded from LUY. After selecting a data set, you are queried to select the building block type to view:
+
+![Select building block type](./doc/Select_Buildingblocktype.png)
+
+For the selected building block type, an overview table with all data of all building blocks of that type are shown:
+
+![Building block type overview table](./doc/BBT_Table.png)
+
+When you click any column, you can sort the table:
+
+![Sorted table](./doc/Table_Sorting.png)
+
+You can also click the small button right beneath the text to filter the table. The filter works quite similar to the one found in MS Excel:
+
+![Table filter](./doc/Table_Filter.png)
+
+Finally, you can click on the *id* of a building block to view it in a details page:
+
+![Building block detail view](./doc/BB_Detail.png)
+
+Whatever you do, keep in mind that using the LUYViewer you do not modify data in LUY.
 
 
 ### Cleanup
@@ -72,8 +107,6 @@ This program will not transfer any information to other networked systems unless
 
 Data remains local with the LUYViewer, whereever it is run. The LUYViewer is just a reader, it does not modify any data in your LUY instance. All data stored with the LUYViewer, i.e. downloaded snapshots of your data in LUY, is **NOT** encrypted. It is up to you to keep your data with the required level of security and privacy.
 
-For the Windows package, a free code signing is provided by SignPath.io, certificate by SignPath Foundation. Thank you to make this service available to the open source community.
-
 
 ## License
 
@@ -86,10 +119,14 @@ The motivation of this application is the increasing effort of the LUY company t
 
 This project has been entirely created using Artificial Intelligence (particularly Claude Sonnet 4). So, a big appreciation to Anthropic for their decent AI that made this small, nice application possible. The logo and icon have been created by ChatGPT 4. Testing was done manually by me, I am still looking for a good AI doing this...
 
-The LUYViewer is written in TypeScript, JavaScript, HTML, and CSS, executed in Deno runtime and the browser. For convenience, there are release packages for different platforms so the LUYViewer can be run without the Deno runtime - because it is bundled into the executable of the LUYViewer.
+The LUYViewer is written in TypeScript, JavaScript, HTML, and CSS, executed in Deno runtime and the browser. For convenience, there are release packages for different platforms so the LUYViewer can be run without the Deno runtime - because it is bundled into the executable of the LUYViewer. I selected the tech stack because whatever I do, I also do to learn. And this tech stack is a promising full-stack selection for web based applications. In particular, I consider Deno as a big leap for the JavaScript backend ecosystem, since it comes with built-in multi threading, native TypeScript support, and can be compiled to binaries making distribution more easy (i.e. does not require to setup e.g. Node.js runtime).
+
+
+## Call for support
+
+For Windows, it would help if the application is signed. Unfortunately, there are very few options for free-of-charge open source software, and those focus on more widespread software also discussed in mainstream media. Since the LUYViewer does not fit into this category, I would appreciate any support in getting the LUYViewer signed for Windows. If you want to support (e.g. because you have signing facility, or you are willing to pay for commercial signing), please reach out to me.
 
 
 ## ToDo
 
 * Write the "Daily use" section
-* Get registered at SignPath to sign the Windows executable

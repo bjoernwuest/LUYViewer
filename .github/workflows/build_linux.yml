@@ -1,0 +1,51 @@
+name: Build and Package LUYViewer for Linux
+
+on:
+  push:
+    branches:
+      - master
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Deno
+        uses: denoland/setup-deno@v2
+        with:
+          deno-version: v2.3.x
+
+      - name: Compile LUYViewer for Linux
+        run: |
+          deno task compile_linux
+
+      - name: Create package directory
+        run: mkdir package
+
+      - name: Create data directory
+        run: mkdir package/data
+
+      - name: Move app and other files into package directory
+        run: |
+          mv LUYViewer package/
+          cp LUYViewer_logo.png package/
+          cp backend.js package/
+          cp config.json package/
+          cp detail.js package/
+          cp favicon.ico package/
+          cp index.html package/
+          cp main.css package/
+          cp table.js package/
+
+      - name: Create TAR.GZ archive
+        run: |
+          tar -czf LUYViewer-Linux-x86_64.tar.gz -C package .
+
+      - name: Upload deployment package
+        uses: actions/upload-artifact@v4
+        with:
+          name: linux-deployment-package
+          path: LUYViewer-Linux-x86_64.tar.gz
