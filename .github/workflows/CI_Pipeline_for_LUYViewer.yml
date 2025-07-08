@@ -5,6 +5,10 @@ on:
     branches:
       - master
 
+permissions:
+  contents: write
+  packages: write
+
 jobs:
   build-windows:
     runs-on: windows-latest
@@ -144,6 +148,9 @@ jobs:
   create-release:
     needs: [build-windows, build-macos, build-linux]
     runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      packages: write
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
@@ -163,13 +170,10 @@ jobs:
         run: find ./artifacts -type f -name "*.zip" -o -name "*.tar.gz" | head -20
 
       - name: Create Release
-        uses: actions/create-release@v1
-        id: create_release
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        uses: softprops/action-gh-release@v2
         with:
           tag_name: ${{ steps.tag.outputs.tag }}
-          release_name: LUYViewer ${{ steps.tag.outputs.tag }}
+          name: LUYViewer ${{ steps.tag.outputs.tag }}
           body: |
             ## LUYViewer Release ${{ steps.tag.outputs.tag }}
             
@@ -180,21 +184,14 @@ jobs:
             - **macOS Intel**: LUYViewer-macOS-x86_64.zip
             - **macOS Apple Silicon**: LUYViewer-macOS-aarch64.zip
             - **Linux**: LUYViewer-Linux-x86_64.tar.gz
+            
+            ### Changes:
+            Built from the latest master branch.
           draft: false
           prerelease: false
-
-      - name: Upload Release Assets
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: |
-          # Upload Windows
-          gh release upload ${{ steps.tag.outputs.tag }} ./artifacts/windows-build/LUYViewer-Windows.zip
-          
-          # Upload macOS Intel
-          gh release upload ${{ steps.tag.outputs.tag }} ./artifacts/macos-build-x86_64/LUYViewer-macOS-x86_64.zip
-          
-          # Upload macOS Apple Silicon
-          gh release upload ${{ steps.tag.outputs.tag }} ./artifacts/macos-build-aarch64/LUYViewer-macOS-aarch64.zip
-          
-          # Upload Linux
-          gh release upload ${{ steps.tag.outputs.tag }} ./artifacts/linux-build/LUYViewer-Linux-x86_64.tar.gz
+          files: |
+            ./artifacts/windows-build/LUYViewer-Windows.zip
+            ./artifacts/macos-build-x86_64/LUYViewer-macOS-x86_64.zip
+            ./artifacts/macos-build-aarch64/LUYViewer-macOS-aarch64.zip
+            ./artifacts/linux-build/LUYViewer-Linux-x86_64.tar.gz
+          token: ${{ secrets.GITHUB_TOKEN }}
