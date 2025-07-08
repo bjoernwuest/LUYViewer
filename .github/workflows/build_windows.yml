@@ -51,5 +51,5 @@ jobs:
       - name: Upload final deployment package
         uses: actions/upload-artifact@v4
         with:
-          name: final-deployment-package
+          name: LUYViewer-Windows.zip
           path: LUYViewer-Windows.zip

@@ -125,8 +125,3 @@ The LUYViewer is written in TypeScript, JavaScript, HTML, and CSS, executed in D
 ## Call for support
 
 For Windows, it would help if the application is signed. Unfortunately, there are very few options for free-of-charge open source software, and those focus on more widespread software also discussed in mainstream media. Since the LUYViewer does not fit into this category, I would appreciate any support in getting the LUYViewer signed for Windows. If you want to support (e.g. because you have signing facility, or you are willing to pay for commercial signing), please reach out to me.
-
-
-## ToDo
-
-* Write the "Daily use" section
